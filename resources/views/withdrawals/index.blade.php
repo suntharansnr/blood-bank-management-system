@@ -1,0 +1,89 @@
+@extends('layouts.backend_master')
+@section('content')
+
+
+<!-- Main content -->
+    <section class="content">
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <div class="row">
+                            <h2>Requests Management</h2>
+                            <div class="ml-auto mr-3">
+                                 <a class="btn btn-success" href="{{ route('Requests.create') }}"><i class="fa fa-plus"></i> New request</a>
+                            </div>
+              </div>
+            </div>
+
+            <!-- /.card-header -->
+            <div class="card-body">
+              <table id="example1" class="table table-bordered table-striped">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>Hospital Name</th>
+                    <th>Blood Type</th>
+                    <th>Blood Quantity</th>
+                    <th>Request Date</th>
+                    <th width="280px">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+
+                   @foreach ($data as $key => $Request)
+                    <tr>
+                      <td>{{ ++$i }}</td>
+                      <td>{{ $Request->hname }}</td>
+                      <td>{{ $Request->B_type }}</td>
+                      <td>{{ $Request->B_quantity }}</td>
+                      <td>{{ $Request->Requestdate }}</td>
+                      <td>
+                         <a class="btn btn-info" href="{{ route('Requests.show',$Request->id) }}">Show</a>
+                         <a class="btn btn-primary" href="{{ route('Requests.edit',$Request->id) }}">Edit</a>
+                          {!! Form::open(['method' => 'DELETE','route' => ['Requests.destroy', $Request->id],'style'=>'display:inline']) !!}
+                              {!! Form::submit('Delete', ['class' => 'btn btn-danger']) !!}
+                          {!! Form::close() !!}
+                      </td>
+                    </tr>
+                   @endforeach
+                </tbody>
+
+              </table>
+            </div>
+            <!-- /.card-body -->
+          </div>
+          <!-- /.card -->
+        </div>
+        <!-- /.col -->
+      </div>
+      <!-- /.row -->
+    </section>
+    <!-- /.content -->
+  </div>
+
+@if ($message = Session::get('success'))
+<div class="alert alert-success">
+  <p>{{ $message }}</p>
+</div>
+@endif
+{!! $data->render() !!}
+
+
+@endsection
+
+@section('js')
+<script>
+$(function () {
+  $("#example1").DataTable();
+  $('#example2').DataTable({
+    "paging": true,
+    "lengthChange": false,
+    "searching": false,
+    "ordering": true,
+    "info": true,
+    "autoWidth": false,
+  });
+});
+</script>
+@endsection
