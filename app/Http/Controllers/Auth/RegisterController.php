@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use App\Models\User;
+use App\Models\Donor;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use App\Traits\UploadTrait;
 
 class RegisterController extends Controller
 {
@@ -21,7 +24,7 @@ class RegisterController extends Controller
     | provide this functionality without requiring any additional code.
     |
     */
-
+    use UploadTrait;
     use RegistersUsers;
 
     /**
@@ -53,6 +56,7 @@ class RegisterController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'profile_image' => ['required','mimes:jpeg,png,jpg,gif','max:2048'],
         ]);
     }
 
@@ -64,10 +68,32 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
+        $request = app('request');
+        // Check if a profile image has been uploaded
+        if ($request->hasfile('profile_image')) {
+          // Get image file
+          $image = $request->file('profile_image');
+          // Make a image name based on user name and current timestamp
+          $name = Str::slug($request->input('name')).'_'.time();
+          // Define folder path
+          $folder = '/uploads/profiles/';
+          // Make a file path where image will be stored [ folder path + file name + file extension]
+          $filePath = $folder . $name. '.' . $image->getClientOriginalExtension();
+          // Upload image
+          $this->uploadOne($image, $folder, 'public', $name);
+        }
+        $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'profile_image' => $filePath,
         ]);
+
+        $user->assignRole('Donor');
+        $donor = new Donor;
+        $donor->user_id = $user->id;
+        $donor->save();
+
+        return $user;
     }
 }
